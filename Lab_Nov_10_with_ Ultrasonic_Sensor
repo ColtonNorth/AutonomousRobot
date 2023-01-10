@@ -1,0 +1,117 @@
+/*Connect the wheel encoder signal to pin A7 in the Arduino.*/
+volatile uint32_t CaptureCountA;
+volatile boolean CaptureFlag;
+
+const int trigPin = 33;
+const int echoPin = 32;
+
+long duration
+int distance
+
+void setup() {
+                                              // Serial.begin(115200);
+                                              // PMC->PMC_PCER0 |= PMC_PCER0_PID28; // Timer Counter 0 channel 1 IS TC1, TC1 power ON
+                                              // TC0->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK1 // capture mode, MCK/2 = 42 MHz
+                                              //                             | TC_CMR_ABETRG // TIOA is used as the external trigger
+                                              //                             | TC_CMR_LDRA_RISING// load RA on rising edge of TIOA
+                                              //                             | TC_CMR_ETRGEDG_RISING; // Trigger on rising edge
+                                              // TC0->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG | TC_CCR_CLKEN; // Reset TC counter and enable
+//arduino pin 2 back left motor
+PMC->PMC_PCER0 |= PMC_PCER0_PID27;//TC0 power ON - Timer Counter 0 channel 0
+PIOB->PIO_PDR |= PIO_PDR_P25; // The pin is no more driven by GPIO
+PIOB->PIO_ABSR |= PIO_PB25B_TIOA0;// B Assign B25 to alternative periph_B (TIOA0):
+
+TC0->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK1 //MCK/2 = 42 MHz,
+| TC_CMR_WAVE //Waveform mode
+| TC_CMR_WAVSEL_UP_RC //Count UP mode till RC
+| TC_CMR_ACPA_CLEAR //Clear TIOA0 on RA compare match
+| TC_CMR_ACPC_SET; // Set TIOA0 on RC compare match
+TC0->TC_CHANNEL[0].TC_RC = 420000-1; //Set the frequency to 66.667Hz (Period 60 ms)
+TC0->TC_CHANNEL[0].TC_RA = 410000-1; //Set the duty cycle (Pulse of 10 usec)
+TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_SWTRG //Software trigger TC0 channel 0 counter
+| TC_CCR_CLKEN;//and enabl
+
+////////////////////////////////////////////////////////////////////
+//arduino pin 11 back right motor
+PMC->PMC_PCER1 |= PMC_PCER1_PID35;//TC2 power ON - Timer Counter 2 channel 2
+PIOD->PIO_PDR |= PIO_PDR_P7; // The pin is no more driven by GPIO
+PIOD->PIO_ABSR |= PIO_PD7B_TIOA8;// B Assign B25 to alternative periph_B (TIOA0):
+
+TC2->TC_CHANNEL[2].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK1 //MCK/2 = 42 MHz,
+| TC_CMR_WAVE //Waveform mode
+| TC_CMR_WAVSEL_UP_RC //Count UP mode till RC
+| TC_CMR_ACPA_CLEAR //Clear TIOA0 on RA compare match
+| TC_CMR_ACPC_SET; // Set TIOA0 on RC compare match
+TC2->TC_CHANNEL[2].TC_RC = 420000-1; //Set the frequency to 66.667Hz (Period 60 ms)
+TC2->TC_CHANNEL[2].TC_RA = 410000-1; //Set the duty cycle (Pulse of 10 usec)
+TC2->TC_CHANNEL[2].TC_CCR = TC_CCR_SWTRG //Software trigger TC0 channel 0 counter
+| TC_CCR_CLKEN;//and enabl
+
+//arduino pin 3 front left motor
+PMC->PMC_PCER1 |= PMC_PCER1_PID34;//TC2 power ON - Timer Counter 2 channel 2
+PIOD->PIO_PDR |= PIO_PDR_P28; // The pin is no more driven by GPIO
+PIOD->PIO_ABSR |= PIO_PC28B_TIOA7;// B Assign B25 to alternative periph_B (TIOA0):
+
+TC2->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK1 //MCK/2 = 42 MHz,
+| TC_CMR_WAVE //Waveform mode
+| TC_CMR_WAVSEL_UP_RC //Count UP mode till RC
+| TC_CMR_ACPA_CLEAR //Clear TIOA0 on RA compare match
+| TC_CMR_ACPC_SET; // Set TIOA0 on RC compare match
+TC2->TC_CHANNEL[1].TC_RC = 420000-1; //Set the frequency to 66.667Hz (Period 60 ms)
+TC2->TC_CHANNEL[1].TC_RA = 410000-1; //Set the duty cycle (Pulse of 10 usec)
+TC2->TC_CHANNEL[1].TC_CCR = TC_CCR_SWTRG //Software trigger TC0 channel 0 counter
+| TC_CCR_CLKEN;//and enabl
+
+//arduino pin 5 front right motor
+PMC->PMC_PCER1 |= PMC_PCER1_PID33;//TC2 power ON - Timer Counter 2 channel 2
+PIOD->PIO_PDR |= PIO_PDR_P25; // The pin is no more driven by GPIO
+PIOD->PIO_ABSR |= PIO_PC25B_TIOA6;// B Assign B25 to alternative periph_B (TIOA0):
+
+TC2->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK1 //MCK/2 = 42 MHz,
+| TC_CMR_WAVE //Waveform mode
+| TC_CMR_WAVSEL_UP_RC //Count UP mode till RC
+| TC_CMR_ACPA_CLEAR //Clear TIOA0 on RA compare match
+| TC_CMR_ACPC_SET; // Set TIOA0 on RC compare match
+TC2->TC_CHANNEL[0].TC_RC = 420000-1; //Set the frequency to 66.667Hz (Period 60 ms)
+TC2->TC_CHANNEL[0].TC_RA = 410000-1; //Set the duty cycle (Pulse of 10 usec)
+TC2->TC_CHANNEL[0].TC_CCR = TC_CCR_SWTRG //Software trigger TC0 channel 0 counter
+| TC_CCR_CLKEN;//and enabl
+
+  // TC0->TC_CHANNEL[1].TC_IER |= TC_IER_LDRAS; // Trigger interrupt on Load RA
+  // NVIC_EnableIRQ(TC1_IRQn); // Enable TC1 interrupts
+
+
+
+
+//for sensor Ultrasonic
+pinMode(trigPin, OUTPUT);
+pinModde(echoPin, INPUT);
+serial.begin(9600);
+}
+
+void loop(){
+
+digitalWrite(trigPin, Low);
+delayMicroseconds(2);
+
+digitalWrite(trigPin, HIGH);
+delayMicroseconds(10);
+digitalWrite(trigPin, Low);
+
+duration = pulseIn(echoPin, HIGH);
+distance = duration * 0.034/2;
+
+serial.print("Distance: ");
+serial.println(distance)
+  // if (CaptureFlag) {
+  // CaptureFlag = 0; //Reset the flag,
+  // printf("L1, Group8: %f msec \n", CaptureCountA/42000.0);} //the .0 is required to type casting.
+}
+
+// void TC1_Handler() {
+//   uint32_t status = TC0->TC_CHANNEL[1].TC_SR; //Read status register, Clear status
+//   if (status & TC_SR_LDRAS) { // If ISR is fired by LDRAS then ....
+//     CaptureCountA = TC0->TC_CHANNEL[1].TC_RA; //read TC_RA
+//     CaptureFlag = 1; //Inform the main loop of an update.
+//   }
+// }
